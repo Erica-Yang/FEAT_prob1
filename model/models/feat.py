@@ -33,7 +33,7 @@ class MultiHeadAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
 
-        self.w_qs = nn.Linear(d_model, n_head * d_k, bias=False)
+        self.w_qs = nn.Linear(d_model, n_head * d_k, bias=False)    #ConvNet(64, 1*64)
         self.w_ks = nn.Linear(d_model, n_head * d_k, bias=False)
         self.w_vs = nn.Linear(d_model, n_head * d_v, bias=False)
         nn.init.normal_(self.w_qs.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_k)))
@@ -111,11 +111,11 @@ class FEAT(FewShotModel):
 
             logits = - torch.sum((proto - query) ** 2, 2) / self.args.temperature
         else:
-            proto = F.normalize(proto, dim=-1) # normalize for cosine distance
-            query = query.view(num_batch, -1, emb_dim) # (Nbatch,  Nq*Nw, d)
+            proto = F.normalize(proto, dim=-1) # normalize for cosine distance  (1,5,64)
+            query = query.view(num_batch, -1, emb_dim) # (Nbatch,  Nq*Nw, d)   (1,75,64)
 
             logits = torch.bmm(query, proto.permute([0,2,1])) / self.args.temperature
-            logits = logits.view(-1, num_proto)
+            logits = logits.view(-1, num_proto)   #(75,5)
         
         # for regularization
         if self.training:
@@ -123,12 +123,12 @@ class FEAT(FewShotModel):
                                   query.view(1, self.args.query, self.args.way, emb_dim)], 1) # T x (K+Kq) x N x d
             num_query = np.prod(aux_task.shape[1:3])
             aux_task = aux_task.permute([0, 2, 1, 3])
-            aux_task = aux_task.contiguous().view(-1, self.args.shot + self.args.query, emb_dim)
+            aux_task = aux_task.contiguous().view(-1, self.args.shot + self.args.query, emb_dim) #(5,16,64)
             # apply the transformation over the Aug Task
             aux_emb = self.slf_attn(aux_task, aux_task, aux_task) # T x N x (K+Kq) x d
             # compute class mean
             aux_emb = aux_emb.view(num_batch, self.args.way, self.args.shot + self.args.query, emb_dim)
-            aux_center = torch.mean(aux_emb, 2) # T x N x d
+            aux_center = torch.mean(aux_emb, 2) # T x N x d   (1,5,64)
             
             if self.args.use_euclidean:
                 aux_task = aux_task.permute([1,0,2]).contiguous().view(-1, emb_dim).unsqueeze(1) # (Nbatch*Nq*Nw, 1, d)

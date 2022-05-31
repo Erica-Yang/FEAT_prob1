@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--schedule', type=int, nargs='+', default=[75, 150, 300], help='Decrease learning rate at these epochs.')
     parser.add_argument('--gamma', type=float, default=0.1)
     parser.add_argument('--query', type=int, default=15)    
-    parser.add_argument('--resume', type=bool, default=False)
+    parser.add_argument('--resume', type=bool, default=True)
     args = parser.parse_args()
     args.orig_imsize = -1
     pprint(vars(args))
@@ -46,11 +46,11 @@ if __name__ == '__main__':
         raise ValueError('Non-supported Dataset.')
 
     trainset = Dataset('train', args, augment=True)
-    train_loader = DataLoader(dataset=trainset, batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    train_loader = DataLoader(dataset=trainset, batch_size=args.batch_size, shuffle=True, num_workers=0, pin_memory=True)
     args.num_class = trainset.num_class
     valset = Dataset('val', args)
     val_sampler = CategoriesSampler(valset.label, 200, valset.num_class, 1 + args.query) # test on 16-way 1-shot
-    val_loader = DataLoader(dataset=valset, batch_sampler=val_sampler, num_workers=8, pin_memory=True)
+    val_loader = DataLoader(dataset=valset, batch_sampler=val_sampler, num_workers=0, pin_memory=True)
     args.way = valset.num_class
     args.shot = 1
     
@@ -91,7 +91,8 @@ if __name__ == '__main__':
     
     if args.resume == True:
         # load checkpoint
-        state = torch.load(osp.join(args.save_path, 'model_best.pth.tar'))
+        # state = torch.load(osp.join(args.save_path, 'model_best.pth.tar'))
+        state = torch.load(osp.join(args.save_path, 'Res12-pre.pth'))
         init_epoch = state['epoch']
         resumed_state = state['state_dict']
         # resumed_state = {'module.'+k:v for k,v in resumed_state.items()}

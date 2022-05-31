@@ -40,7 +40,7 @@ class FewShotModel(nn.Module):
         else:
             # feature extraction
             x = x.squeeze(0)
-            instance_embs = self.encoder(x)
+            instance_embs = self.encoder(x)     #进入模型，提取特征  resNet12 [80,640]
             num_inst = instance_embs.shape[0]
             # split support query set for few-shot data
             support_idx, query_idx = self.split_instances(x)

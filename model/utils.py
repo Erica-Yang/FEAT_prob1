@@ -145,7 +145,7 @@ def get_command_line_parser():
     parser.add_argument('--model_class', type=str, default='FEAT', 
                         choices=['MatchNet', 'ProtoNet', 'BILSTM', 'DeepSet', 'GCN', 'FEAT', 'FEATSTAR', 'SemiFEAT', 'SemiProtoFEAT']) # None for MatchNet or ProtoNet
     parser.add_argument('--use_euclidean', action='store_true', default=False)    
-    parser.add_argument('--backbone_class', type=str, default='ConvNet',
+    parser.add_argument('--backbone_class', type=str, default='Res12',
                         choices=['ConvNet', 'Res12', 'Res18', 'WRN'])
     parser.add_argument('--dataset', type=str, default='MiniImageNet',
                         choices=['MiniImageNet', 'TieredImageNet', 'CUB'])
@@ -176,7 +176,7 @@ def get_command_line_parser():
     # usually untouched parameters
     parser.add_argument('--mom', type=float, default=0.9)
     parser.add_argument('--weight_decay', type=float, default=0.0005) # we find this weight decay value works the best
-    parser.add_argument('--num_workers', type=int, default=4)
+    parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--log_interval', type=int, default=50)
     parser.add_argument('--eval_interval', type=int, default=1)
     parser.add_argument('--save_dir', type=str, default='./checkpoints')
