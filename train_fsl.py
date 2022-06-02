@@ -11,6 +11,7 @@ from model.utils import (
 if __name__ == '__main__':
     parser = get_command_line_parser()
     args = postprocess_args(parser.parse_args())
+    # args.init_weights = './checkpoints/miniImage-Res12-pre.pth'
     args.init_weights = './checkpoints/miniImage-Res12-pre.pth'
     # with launch_ipdb_on_exception():
     pprint(vars(args))
