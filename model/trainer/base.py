@@ -1,13 +1,12 @@
 import abc
-import torch
 import os.path as osp
 
-from model.utils import (
-    ensure_path,
-    Averager, Timer, count_acc,
-    compute_confidence_interval,
-)
+import torch
+
 from model.logger import Logger
+from model.utils import (
+    Averager, Timer, )
+
 
 class Trainer(object, metaclass=abc.ABCMeta):
     def __init__(self, args):
@@ -38,21 +37,21 @@ class Trainer(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def evaluate(self, data_loader):
         pass
-    
+
     @abc.abstractmethod
     def evaluate_test(self, data_loader):
-        pass    
-    
+        pass
+
     @abc.abstractmethod
     def final_record(self):
-        pass    
+        pass
 
     def try_evaluate(self, epoch):
         args = self.args
         if self.train_epoch % args.eval_interval == 0:
             vl, va, vap = self.evaluate(self.val_loader)
             self.logger.add_scalar('val_loss', float(vl), self.train_epoch)
-            self.logger.add_scalar('val_acc', float(va),  self.train_epoch)
+            self.logger.add_scalar('val_acc', float(va), self.train_epoch)
             print('epoch {}, val, loss={:.4f} acc={:.4f}+{:.4f}'.format(epoch, vl, va, vap))
 
             if va >= self.trlog['max_acc']:
@@ -72,16 +71,16 @@ class Trainer(object, metaclass=abc.ABCMeta):
                           self.optimizer.param_groups[0]['lr']))
             self.logger.add_scalar('train_total_loss', tl1.item(), self.train_step)
             self.logger.add_scalar('train_loss', tl2.item(), self.train_step)
-            self.logger.add_scalar('train_acc',  ta.item(), self.train_step)
+            self.logger.add_scalar('train_acc', ta.item(), self.train_step)
             if tg is not None:
-                self.logger.add_scalar('grad_norm',  tg.item(), self.train_step)
-            print('data_timer: {:.2f} sec, '     \
-                  'forward_timer: {:.2f} sec,'   \
+                self.logger.add_scalar('grad_norm', tg.item(), self.train_step)
+            print('data_timer: {:.2f} sec, ' \
+                  'forward_timer: {:.2f} sec,' \
                   'backward_timer: {:.2f} sec, ' \
                   'optim_timer: {:.2f} sec'.format(
-                        self.dt.item(), self.ft.item(),
-                        self.bt.item(), self.ot.item())
-                  )
+                self.dt.item(), self.ft.item(),
+                self.bt.item(), self.ot.item())
+            )
             self.logger.dump()
 
     def save_model(self, name):

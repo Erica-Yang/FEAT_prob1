@@ -16,7 +16,8 @@ class DropBlock(nn.Module):
         if self.training:
             batch_size, channels, height, width = x.shape
             bernoulli = Bernoulli(gamma)
-            mask = bernoulli.sample((batch_size, channels, height - (self.block_size - 1), width - (self.block_size - 1)))
+            mask = bernoulli.sample(
+                (batch_size, channels, height - (self.block_size - 1), width - (self.block_size - 1)))
             if torch.cuda.is_available():
                 mask = mask.cuda()
             block_mask = self._compute_block_mask(mask)
@@ -28,7 +29,7 @@ class DropBlock(nn.Module):
             return x
 
     def _compute_block_mask(self, mask):
-        left_padding = int((self.block_size-1) / 2)
+        left_padding = int((self.block_size - 1) / 2)
         right_padding = int(self.block_size / 2)
 
         batch_size, channels, height, width = mask.shape
@@ -37,11 +38,12 @@ class DropBlock(nn.Module):
 
         offsets = torch.stack(
             [
-                torch.arange(self.block_size).view(-1, 1).expand(self.block_size, self.block_size).reshape(-1), # - left_padding,
-                torch.arange(self.block_size).repeat(self.block_size), #- left_padding
+                torch.arange(self.block_size).view(-1, 1).expand(self.block_size, self.block_size).reshape(-1),
+                # - left_padding,
+                torch.arange(self.block_size).repeat(self.block_size),  # - left_padding
             ]
         ).t()
-        offsets = torch.cat((torch.zeros(self.block_size**2, 2).long(), offsets.long()), 1)
+        offsets = torch.cat((torch.zeros(self.block_size ** 2, 2).long(), offsets.long()), 1)
         if torch.cuda.is_available():
             offsets = offsets.cuda()
 
@@ -51,11 +53,11 @@ class DropBlock(nn.Module):
             offsets = offsets.long()
 
             block_idxs = non_zero_idxs + offsets
-            #block_idxs += left_padding
+            # block_idxs += left_padding
             padded_mask = F.pad(mask, (left_padding, right_padding, left_padding, right_padding))
             padded_mask[block_idxs[:, 0], block_idxs[:, 1], block_idxs[:, 2], block_idxs[:, 3]] = 1.
         else:
             padded_mask = F.pad(mask, (left_padding, right_padding, left_padding, right_padding))
 
-        block_mask = 1 - padded_mask#[:height, :width]
+        block_mask = 1 - padded_mask  # [:height, :width]
         return block_mask

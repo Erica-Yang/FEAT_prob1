@@ -1,17 +1,17 @@
-import torch
 import numpy as np
+import torch
 
 
 class CategoriesSampler():
 
     def __init__(self, label, n_batch, n_cls, n_per):
-        self.n_batch = n_batch
-        self.n_cls = n_cls
-        self.n_per = n_per
+        self.n_batch = n_batch  # train:100  /  val:600  /10000
+        self.n_cls = n_cls  # 5   / 5   /5
+        self.n_per = n_per  # 10    / 20   /20
 
-        label = np.array(label)
+        label = np.array(label)  # 38400
         self.m_ind = []
-        for i in range(max(label) + 1):
+        for i in range(max(label) + 1):  # 64+1
             ind = np.argwhere(label == i).reshape(-1)
             ind = torch.from_numpy(ind)
             self.m_ind.append(ind)
@@ -20,13 +20,13 @@ class CategoriesSampler():
         return self.n_batch
 
     def __iter__(self):
-        for i_batch in range(self.n_batch):
+        for i_batch in range(self.n_batch):  # 0-100
             batch = []
-            classes = torch.randperm(len(self.m_ind))[:self.n_cls]
-            for c in classes:
-                l = self.m_ind[c]
-                pos = torch.randperm(len(l))[:self.n_per]
-                batch.append(l[pos])
+            classes = torch.randperm(len(self.m_ind))[:self.n_cls]  # 打乱顺序，后取前5个。
+            for c in classes:  # 对5个类中 每一个类别
+                l = self.m_ind[c]  # 提取类c
+                pos = torch.randperm(len(l))[:self.n_per]  # 乱序后，取n_per 20个
+                batch.append(l[pos])  # 放到batch里
             batch = torch.stack(batch).t().reshape(-1)
             yield batch
 
@@ -46,8 +46,8 @@ class RandomSampler():
         for i_batch in range(self.n_batch):
             batch = torch.randperm(self.num_label)[:self.n_per]
             yield batch
-            
-            
+
+
 # sample for each class
 class ClassSampler():
 
@@ -72,12 +72,12 @@ class ClassSampler():
             else:
                 pos = torch.randperm(len(l))[:self.n_per]
             yield l[pos]
-            
-            
+
+
 # for ResNet Fine-Tune, which output the same index of task examples several times
 class InSetSampler():
 
-    def __init__(self, n_batch, n_sbatch, pool): # pool is a tensor
+    def __init__(self, n_batch, n_sbatch, pool):  # pool is a tensor
         self.n_batch = n_batch
         self.n_sbatch = n_sbatch
         self.pool = pool

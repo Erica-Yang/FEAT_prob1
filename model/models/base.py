@@ -1,6 +1,7 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
+
 
 class FewShotModel(nn.Module):
     def __init__(self, args):
@@ -20,18 +21,25 @@ class FewShotModel(nn.Module):
         elif args.backbone_class == 'WRN':
             hdim = 640
             from model.networks.WRN28 import Wide_ResNet
-            self.encoder = Wide_ResNet(28, 10, 0.5)  # we set the dropout=0.5 directly here, it may achieve better results by tunning the dropout
+            self.encoder = Wide_ResNet(28, 10,
+                                       0.5)  # we set the dropout=0.5 directly here, it may achieve better results by tunning the dropout
         else:
             raise ValueError('')
 
     def split_instances(self, data):
         args = self.args
         if self.training:
-            return  (torch.Tensor(np.arange(args.way*args.shot)).long().view(1, args.shot, args.way), 
-                     torch.Tensor(np.arange(args.way*args.shot, args.way * (args.shot + args.query))).long().view(1, args.query, args.way))
+            return (torch.Tensor(np.arange(args.way * args.shot)).long().view(1, args.shot, args.way),
+                    torch.Tensor(np.arange(args.way * args.shot, args.way * (args.shot + args.query))).long().view(1,
+                                                                                                                   args.query,
+                                                                                                                   args.way))
         else:
-            return  (torch.Tensor(np.arange(args.eval_way*args.eval_shot)).long().view(1, args.eval_shot, args.eval_way), 
-                     torch.Tensor(np.arange(args.eval_way*args.eval_shot, args.eval_way * (args.eval_shot + args.eval_query))).long().view(1, args.eval_query, args.eval_way))
+            return (
+                torch.Tensor(np.arange(args.eval_way * args.eval_shot)).long().view(1, args.eval_shot, args.eval_way),
+                torch.Tensor(np.arange(args.eval_way * args.eval_shot,
+                                       args.eval_way * (args.eval_shot + args.eval_query))).long().view(1,
+                                                                                                        args.eval_query,
+                                                                                                        args.eval_way))
 
     def forward(self, x, get_feature=False):
         if get_feature:
@@ -40,7 +48,7 @@ class FewShotModel(nn.Module):
         else:
             # feature extraction
             x = x.squeeze(0)
-            instance_embs = self.encoder(x)     #进入模型，提取特征  resNet12 [80,640]
+            instance_embs = self.encoder(x)  # 进入模型，提取特征  resNet12 [80,640]
             num_inst = instance_embs.shape[0]
             # split support query set for few-shot data
             support_idx, query_idx = self.split_instances(x)

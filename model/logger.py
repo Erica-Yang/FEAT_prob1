@@ -1,8 +1,9 @@
 import json
 import os.path as osp
-import numpy as np
 from collections import defaultdict, OrderedDict
+
 from tensorboardX import SummaryWriter
+
 
 class ConfigEncoder(json.JSONEncoder):
     def default(self, o):
@@ -18,13 +19,14 @@ class ConfigEncoder(json.JSONEncoder):
             }
         return json.JSONEncoder.default(self, o)
 
+
 class Logger(object):
     def __init__(self, args, log_dir, **kwargs):
         self.logger_path = osp.join(log_dir, 'scalars.json')
         self.tb_logger = SummaryWriter(
-                            logdir=osp.join(log_dir, 'tflogger'),
-                            **kwargs,
-                        )
+            logdir=osp.join(log_dir, 'tflogger'),
+            **kwargs,
+        )
         self.log_config(vars(args))
 
         self.scalars = defaultdict(OrderedDict)
